@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Exceptions\NotAllow;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Product;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Product as ProductResource;
 use Illuminate\Support\Facades\Validator;
+use GuzzleHttp\Exception\ClientException;
+
 class ProductController extends Controller
 {
     public function __construct()
@@ -41,14 +44,34 @@ class ProductController extends Controller
         return response()->json([
             'code' => 1,
             'data' => $product
-        ]);
+        ],200);
 
     }
 
     public function show($id)
     {
-        $product = Product::findOrFail($id);
-        return new ProductResource($product);
+//        dd('hh');
+
+
+//            $product = Product::find($id);
+//            if ($product){
+//            return response()->json([
+//                'code' => 1,
+//                'data' => new ProductResource($product)
+//            ],200);
+//            }else{
+//                return response()->json([
+//                'code' => 404,
+//            ],404);
+//            }
+//    }
+        $product = Product::findorFail($id);
+            return response()->json([
+                'code' => 1,
+                'data' => new ProductResource($product)
+            ],200);
+
+
     }
 
     public function edit($id)
@@ -65,28 +88,33 @@ class ProductController extends Controller
             'price' => 'required|numeric'
         ]);
         if($validator->fails()){
-            throw new NotAllow($request);
-//            return response()->json([
-//                'code' => 2,
-//                'error' => $validator->errors()
-//            ], 422);
+//            throw new NotAllow($request);
+            return response()->json([
+                'code' => 2,
+                'error' => $validator->errors()
+            ], 400);
         }
 
-        $product = Product::find($id);
+        $product = Product::findorFail($id);
         $update = $product->update($request->all());
         if ($update) {
             return response()->json([
                 'code' => 1,
                 'data' => new ProductResource($product)
-            ]);
+            ],200);
         }
 
     }
 
     public function destroy($id)
     {
-        $product = Product::find($id);
+        $product = Product::findorFail($id);
         $product->delete();
-        return new ProductResource($product);
+        if ($product) {
+            return response()->json([
+                'code' => 1,
+                'data' => new ProductResource($product)
+            ],204);
+        }
     }
 }

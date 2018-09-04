@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Guzzle\Http\Exception\ClientErrorResponseException;
+use GuzzleHttp\Exception\RequestException;
 
 class ProductController extends Controller
 {
@@ -19,12 +21,18 @@ class ProductController extends Controller
 
     public function show($id, Request $request)
     {
-        $id=$request->id;
         $client = new \GuzzleHttp\Client();
-        $res = $client->request('GET', 'http://blog.vn/api/product/'.$id );
+        try {
+            $res = $client->get('http://blog.vn/api/product/'.$id );
+        } catch (RequestException $e){
+            $response = $e->getResponse();
+            $responseBodyAsString = json_decode((string) $response->getBody()->getContents() );
+            return response()->json($responseBodyAsString);
+        }
         $products =  json_decode($res->getBody(), false);
-        return view('api.show', compact('products'));
-
+        if(!empty($products)){
+            return view('api.show', compact('products'));
+        }
     }
 
     public function store(Request $request)

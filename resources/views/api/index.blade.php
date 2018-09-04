@@ -68,6 +68,7 @@
                 </tr>
                 </thead>
                 <tbody>
+
                 @foreach($products->data as $product)
                 <tr>
                     <td><a href="{{route('api.show',$product->id)}}">{{$product->id}}</a></td>
